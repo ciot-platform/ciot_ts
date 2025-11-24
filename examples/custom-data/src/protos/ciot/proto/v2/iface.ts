@@ -1,3 +1,1 @@
-import { IfaceInfo } from "../../../../../../../src/protos/ciot/proto/v2/iface";
-
-export { IfaceInfo };
+export * from "ciot-ts/src/protos/ciot/proto/v2/iface";
