@@ -33,6 +33,15 @@ export abstract class IfaceBase implements Iface {
           ;
   }
 
+  async send<T>(msg: T): Promise<Either<ErrorBase, T>> {
+    const serializedMsg = this._serializer.serialize<T>(msg);
+    const result = await this.sendData(serializedMsg);
+    return result._tag === 'Right'
+        ? right(this._serializer.deserialize<T>(result.right))
+        : result as Either<ErrorBase, T>
+        ;
+  }
+
   requestData(info: IfaceInfo, type: DataType): Promise<Either<ErrorBase, Msg>> {
     const requestMsg = Msg.create({
       iface: info,
