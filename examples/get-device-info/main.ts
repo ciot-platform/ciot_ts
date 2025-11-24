@@ -3,10 +3,7 @@ import { HttpClientCfg, HttpClientMethod, HttpClientTransportType } from "../../
 import { DataType, IfaceInfo, IfaceType } from "../../src/protos/ciot/proto/v2/iface";
 import { Msg } from "../../src/protos/ciot/proto/v2/msg";
 
-const httpClient = new HttpClient(IfaceInfo.create({
-  id: 0,
-  type: IfaceType.HTTP_CLIENT
-}));
+const httpClient = new HttpClient(0);
 
 const httpClientCfg = HttpClientCfg.create({
   url: 'http://127.0.0.1:5050/v1/pd',
