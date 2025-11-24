@@ -139,6 +139,14 @@ jobs:
       - name: Create dist archive
         run: tar -czf ciot-ts-dist-${{ steps.version.outputs.raw_version }}.tar.gz -C dist .
       
+      - name: Create Git tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a ${{ steps.version.outputs.version }} -m "${{ steps.release_type.outputs.emoji }} ${{ steps.release_type.outputs.name }} ${{ steps.version.outputs.version }}"
+          git push origin ${{ steps.version.outputs.version }}
+          echo "✅ Tag ${{ steps.version.outputs.version }} created and pushed"
+      
       - name: Generate changelog
         run: |
           echo "# ${{ steps.release_type.outputs.emoji }} ${{ steps.release_type.outputs.name }} - ${{ steps.version.outputs.version }}" > RELEASE_NOTES.md
@@ -222,8 +230,11 @@ jobs:
           echo "  - Branch: ${{ steps.release_type.outputs.branch }}"
           echo "  - Version: ${{ steps.version.outputs.raw_version }}"
           echo "  - Pre-release: ${{ steps.release_type.outputs.prerelease }}"
+          echo "  - Commit SHA: ${{ github.sha }}"
+          echo "  - Commit Message: $(git log -1 --pretty=%B)"
           echo ""
           echo "📦 Files uploaded:"
           ls -la ciot-ts-*.tgz ciot-ts-dist-*.tar.gz
           echo ""
           echo "🔗 Release URL: https://github.com/${{ github.repository }}/releases/tag/${{ steps.version.outputs.version }}"
+          echo "🏷️ Tag points to: $(git rev-parse ${{ steps.version.outputs.version }})"
