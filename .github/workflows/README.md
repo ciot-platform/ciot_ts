@@ -1,75 +1,146 @@
 # GitHub Actions Workflow
 
-Este diretório contém o workflow do GitHub Actions para automatizar o processo de release do projeto ciot-ts.
+This directory contains the GitHub Actions workflow to automate the release process for the ciot-ts project with multi-environment support.
 
 ## Workflow
 
 ### `auto-release.yml`
-O único workflow necessário para criar releases automáticos.
+Automatic workflow to create releases based on the target branch.
 
-**Quando executa:**
-- Push para branch `main`
-- Execução manual via GitHub UI
+**When it runs:**
+- Push to `main` branch → Stable Release 🚀
+- Push to `release` branch → Beta Release 🧪
+- Push to `develop` branch → Alpha Release ⚡
+- Manual execution via GitHub UI
 
-**O que faz:**
-- Lê a versão do `package.json`
-- Verifica se a tag já existe
-- Compila o projeto (TypeScript)
-- Executa testes (se existirem)
-- Cria pacote npm
-- Gera changelog automático
-- Cria release no GitHub com arquivos anexados
+**Release Types:**
 
-## Como Usar
+| Branch | Type | Suffix | Pre-release | Description |
+|--------|------|--------|-------------|-------------|
+| `main` | Stable | (none) | ❌ | Stable version for production |
+| `release` | Beta | `-beta.N` | ✅ | Feature-complete version for testing |
+| `develop` | Alpha | `-alpha.TIMESTAMP` | ✅ | Unstable version for development |
 
-### Para criar um novo release:
+**Versioning examples:**
+- Stable: `v0.5.0`
+- Beta: `v0.5.0-beta.1`, `v0.5.0-beta.2`
+- Alpha: `v0.5.0-alpha.20251124123045`
 
-1. **Atualize a versão no package.json:**
-   ```bash
-   npm version patch  # para correções (0.4.0 → 0.4.1)
-   npm version minor  # para novas funcionalidades (0.4.0 → 0.5.0)
-   npm version major  # para mudanças breaking (0.4.0 → 1.0.0)
-   ```
+**What it does:**
+- Automatically detects release type based on branch
+- Reads version from `package.json`
+- Adds appropriate suffixes (alpha/beta)
+- Checks if tag already exists
+- Compiles the project (TypeScript)
+- Runs tests (if they exist)
+- Creates npm package
+- Generates automatic changelog
+- Creates GitHub release with attached files
 
-2. **Faça merge para main:**
-   ```bash
-   git push origin main
-   ```
+## How to Use
 
-3. **O workflow será executado automaticamente** e criará:
-   - Uma tag Git com a versão (ex: `v0.4.1`)
-   - Um release no GitHub
-   - Changelog automático
-   - Anexará arquivos de build
+### Automatic Release by Branch
 
-### Execução Manual
+#### To create an Alpha Release (develop):
+```bash
+# Work on the develop branch
+git checkout develop
 
-Você também pode executar manualmente:
-1. Vá para a aba "Actions" no GitHub
-2. Selecione "Auto Release"
-3. Clique em "Run workflow"
-4. Opcionalmente especifique uma versão customizada
+# Make your changes
+git add .
+git commit -m "feat: new feature"
 
-## Configuração Necessária
+# Push to develop - creates alpha release automatically
+git push origin develop
+# Result: v0.5.0-alpha.20251124123045
+```
 
-O workflow usa `GITHUB_TOKEN` que é automaticamente fornecido pelo GitHub Actions. Nenhuma configuração adicional é necessária.
+#### To create a Beta Release (release):
+```bash
+# Merge develop to release
+git checkout release
+git merge develop
 
-## Arquivos Incluídos no Release
+# Push to release - creates beta release automatically
+git push origin release
+# Result: v0.5.0-beta.1
+```
 
-- `ciot-ts-*.tgz` - Pacote npm
-- `dist/**` - Arquivos compilados (se existirem)
-- Changelog automático baseado em commits
+#### To create a Stable Release (main):
+```bash
+# Update version in package.json
+npm version minor  # or patch/major
+
+# Merge release to main
+git checkout main
+git merge release
+
+# Push to main - creates stable release automatically
+git push origin main
+# Result: v0.5.0
+```
+
+### Manual Execution
+
+You can also execute manually:
+1. Go to the "Actions" tab on GitHub
+2. Select "Auto Release"
+3. Click "Run workflow"
+4. Choose the target branch (main/release/develop)
+5. Optionally specify a custom version
+
+## Recommended Workflow
+
+```
+develop (alpha)  →  release (beta)  →  main (stable)
+    ↓                    ↓                  ↓
+v0.5.0-alpha.X     v0.5.0-beta.1        v0.5.0
+```
+
+### Day-to-Day Workflow:
+
+1. **Active development** → work on `develop`
+   - Each push generates an alpha release
+   - Ideal for quick internal testing
+   - Unstable versions with timestamp
+
+2. **Release preparation** → merge to `release`
+   - Generates numbered beta releases
+   - Ideal for QA and acceptance testing
+   - Feature-complete but may have bugs
+
+3. **Production** → merge to `main`
+   - Generates stable release
+   - Requires updated version in package.json
+   - Ready for production
+
+## Required Configuration
+
+The workflow uses `GITHUB_TOKEN` which is automatically provided by GitHub Actions. No additional configuration is needed.
+
+## Files Included in Release
+
+- `ciot-ts-*.tgz` - npm package
+- `ciot-ts-dist-*.tar.gz` - Compressed compiled code
+- Automatic changelog based on commits
+- Badges indicating release type
 
 ## Troubleshooting
 
-### Erro: "Tag already exists"
-- A versão no `package.json` já foi lançada
-- Atualize a versão antes de fazer merge para main
+### Error: "Tag already exists"
+- The version in `package.json` has already been released
+- For stable: update version before merging to main
+- For beta/alpha: suffix is added automatically
 
-### Build falha
-- Verifique se todas as dependências estão no `package.json`
-- O workflow tenta executar `npm run build` se o script existir
+### Build fails
+- Check if all dependencies are in `package.json`
+- Run `npm run build` locally to verify errors
 
-### Sem arquivos de build
-- Normal se o projeto não tem script de build
-- O workflow continuará e anexará apenas o pacote npm
+### Release was not created
+- Check if you pushed to one of the correct branches (main/release/develop)
+- See logs in Actions to identify the error
+
+### Incorrect version
+- Alpha: uses automatic timestamp
+- Beta: automatically increments based on existing tags
+- Stable: uses exactly what's in package.json
