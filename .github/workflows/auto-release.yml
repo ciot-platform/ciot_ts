@@ -94,10 +94,12 @@ jobs:
           # Adiciona sufixo baseado no tipo de release
           SUFFIX="${{ steps.release_type.outputs.suffix }}"
           
-          # Para alpha e beta, adiciona timestamp
+          # Para alpha e beta, adiciona número de build
           if [ "${{ steps.release_type.outputs.type }}" = "alpha" ]; then
-            TIMESTAMP=$(date -u '+%Y%m%d%H%M%S')
-            FULL_VERSION="${BASE_VERSION}${SUFFIX}.${TIMESTAMP}"
+            # Para alpha, conta quantas tags alpha existem para esta versão base
+            ALPHA_COUNT=$(git tag -l "v${BASE_VERSION}${SUFFIX}+*" | wc -l)
+            BUILD_NUM=$((ALPHA_COUNT + 1))
+            FULL_VERSION="${BASE_VERSION}${SUFFIX}+${BUILD_NUM}"
           elif [ "${{ steps.release_type.outputs.type }}" = "beta" ]; then
             # Para beta, adiciona número incremental
             BETA_COUNT=$(git tag -l "v${BASE_VERSION}-beta*" | wc -l)
