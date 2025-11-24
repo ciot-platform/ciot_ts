@@ -1,3 +1,1 @@
-import { Err } from "../../../../../../../src/protos/ciot/proto/v2/errors";
-
-export { Err };
+export * from "ciot-ts/src/protos/ciot/proto/v2/errors";

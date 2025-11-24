@@ -1,3 +1,1 @@
-import { MsgData } from "../../../../../../../src/protos/ciot/proto/v2/msg_data";
-
-export { MsgData };
+export * from "ciot-ts/src/protos/ciot/proto/v2/msg_data";
