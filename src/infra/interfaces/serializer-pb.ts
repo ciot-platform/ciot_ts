@@ -27,7 +27,7 @@ export class SerializerPb implements Serializer {
         }
     }
 
-    static isMsg(obj: any): obj is Msg {
+    public static isMsg(obj: any): obj is Msg {
         return typeof obj.id === 'number' &&
                typeof (obj.iface === undefined || typeof obj.data === 'object') &&
                typeof obj.error === 'number' &&
