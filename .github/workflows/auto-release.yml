@@ -168,8 +168,9 @@ jobs:
           esac
           echo "" >> RELEASE_NOTES.md
           
-          # Obter última tag
-          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          # Obter última tag (excluindo a tag atual que acabou de ser criada)
+          # Lista todas as tags por data, pega a segunda (a primeira é a tag atual)
+          LAST_TAG=$(git tag --sort=-creatordate | sed -n '2p')
           
           if [ -z "$LAST_TAG" ]; then
             echo "## 🎉 Initial Release" >> RELEASE_NOTES.md
@@ -179,10 +180,16 @@ jobs:
             echo "## 📋 Changes since $LAST_TAG" >> RELEASE_NOTES.md
             echo "" >> RELEASE_NOTES.md
             
-            # Adicionar commits desde a última tag
-            git log $LAST_TAG..HEAD --oneline --no-merges | while read commit; do
-              echo "- $commit" >> RELEASE_NOTES.md
-            done
+            # Adicionar commits desde a última tag até o commit atual
+            COMMIT_COUNT=$(git rev-list $LAST_TAG..${{ github.sha }} --count)
+            
+            if [ "$COMMIT_COUNT" -eq 0 ]; then
+              echo "No changes since last release." >> RELEASE_NOTES.md
+            else
+              git log $LAST_TAG..${{ github.sha }} --oneline --no-merges | while read commit; do
+                echo "- $commit" >> RELEASE_NOTES.md
+              done
+            fi
           fi
           
           echo "" >> RELEASE_NOTES.md
