@@ -4,10 +4,6 @@ import { Msg } from '../../protos/ciot/proto/v2/msg';
 export class SerializerPb implements Serializer {
     private static instance: SerializerPb;
 
-    private constructor() {
-        // Construtor privado para impedir instanciação direta
-    }
-
     public static getInstance(): SerializerPb {
         if (!SerializerPb.instance) {
             SerializerPb.instance = new SerializerPb();
