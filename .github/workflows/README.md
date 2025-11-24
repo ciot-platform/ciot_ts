@@ -19,12 +19,12 @@ Automatic workflow to create releases based on the target branch.
 |--------|------|--------|-------------|-------------|
 | `main` | Stable | (none) | ❌ | Stable version for production |
 | `release` | Beta | `-beta.N` | ✅ | Feature-complete version for testing |
-| `develop` | Alpha | `-alpha.TIMESTAMP` | ✅ | Unstable version for development |
+| `develop` | Alpha | `-alpha+N` | ✅ | Unstable version for development |
 
 **Versioning examples:**
 - Stable: `v0.5.0`
 - Beta: `v0.5.0-beta.1`, `v0.5.0-beta.2`
-- Alpha: `v0.5.0-alpha.20251124123045`
+- Alpha: `v0.5.0-alpha+1`, `v0.5.0-alpha+2`
 
 **What it does:**
 - Automatically detects release type based on branch
@@ -52,7 +52,7 @@ git commit -m "feat: new feature"
 
 # Push to develop - creates alpha release automatically
 git push origin develop
-# Result: v0.5.0-alpha.20251124123045
+# Result: v0.5.0-alpha+1
 ```
 
 #### To create a Beta Release (release):
@@ -94,7 +94,7 @@ You can also execute manually:
 ```
 develop (alpha)  →  release (beta)  →  main (stable)
     ↓                    ↓                  ↓
-v0.5.0-alpha.X     v0.5.0-beta.1        v0.5.0
+v0.5.0-alpha+N     v0.5.0-beta.1        v0.5.0
 ```
 
 ### Day-to-Day Workflow:
@@ -102,7 +102,7 @@ v0.5.0-alpha.X     v0.5.0-beta.1        v0.5.0
 1. **Active development** → work on `develop`
    - Each push generates an alpha release
    - Ideal for quick internal testing
-   - Unstable versions with timestamp
+   - Incremental build numbers (alpha+1, alpha+2, etc.)
 
 2. **Release preparation** → merge to `release`
    - Generates numbered beta releases

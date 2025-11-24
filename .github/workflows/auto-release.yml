@@ -94,10 +94,12 @@ jobs:
           # Adiciona sufixo baseado no tipo de release
           SUFFIX="${{ steps.release_type.outputs.suffix }}"
           
-          # Para alpha e beta, adiciona timestamp
+          # Para alpha e beta, adiciona número de build
           if [ "${{ steps.release_type.outputs.type }}" = "alpha" ]; then
-            TIMESTAMP=$(date -u '+%Y%m%d%H%M%S')
-            FULL_VERSION="${BASE_VERSION}${SUFFIX}.${TIMESTAMP}"
+            # Para alpha, conta quantas tags alpha existem para esta versão base
+            ALPHA_COUNT=$(git tag -l "v${BASE_VERSION}${SUFFIX}+*" | wc -l)
+            BUILD_NUM=$((ALPHA_COUNT + 1))
+            FULL_VERSION="${BASE_VERSION}${SUFFIX}+${BUILD_NUM}"
           elif [ "${{ steps.release_type.outputs.type }}" = "beta" ]; then
             # Para beta, adiciona número incremental
             BETA_COUNT=$(git tag -l "v${BASE_VERSION}-beta*" | wc -l)
@@ -138,6 +140,14 @@ jobs:
       
       - name: Create dist archive
         run: tar -czf ciot-ts-dist-${{ steps.version.outputs.raw_version }}.tar.gz -C dist .
+      
+      - name: Create Git tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a ${{ steps.version.outputs.version }} -m "${{ steps.release_type.outputs.emoji }} ${{ steps.release_type.outputs.name }} ${{ steps.version.outputs.version }}"
+          git push origin ${{ steps.version.outputs.version }}
+          echo "✅ Tag ${{ steps.version.outputs.version }} created and pushed"
       
       - name: Generate changelog
         run: |
@@ -222,8 +232,11 @@ jobs:
           echo "  - Branch: ${{ steps.release_type.outputs.branch }}"
           echo "  - Version: ${{ steps.version.outputs.raw_version }}"
           echo "  - Pre-release: ${{ steps.release_type.outputs.prerelease }}"
+          echo "  - Commit SHA: ${{ github.sha }}"
+          echo "  - Commit Message: $(git log -1 --pretty=%B)"
           echo ""
           echo "📦 Files uploaded:"
           ls -la ciot-ts-*.tgz ciot-ts-dist-*.tar.gz
           echo ""
           echo "🔗 Release URL: https://github.com/${{ github.repository }}/releases/tag/${{ steps.version.outputs.version }}"
+          echo "🏷️ Tag points to: $(git rev-parse ${{ steps.version.outputs.version }})"
