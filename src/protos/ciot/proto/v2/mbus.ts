@@ -27,7 +27,7 @@ export interface MbusFunctionReq {
     /**
      * @generated from protobuf field: repeated uint32 data = 3
      */
-    data: number[]; // Optional written values. 
+    data: number[]; // Optional written/read values. 
     /**
      * @generated from protobuf field: uint32 read_count = 4
      */
@@ -40,61 +40,6 @@ export interface MbusFunctionReq {
      * @generated from protobuf field: uint32 error = 6
      */
     error: number; // Error code
-}
-/**
- * Enum representing Modbus client error codes.
- *
- * @generated from protobuf enum Ciot.MbusError
- */
-export enum MbusError {
-    /**
-     * No error
-     *
-     * @generated from protobuf enum value: MBUS_ERROR_NONE = 0;
-     */
-    NONE = 0,
-    /**
-     * Invalid register address
-     *
-     * @generated from protobuf enum value: MBUS_ERROR_REG_ADDR = 1;
-     */
-    REG_ADDR = 1,
-    /**
-     * Invalid argument
-     *
-     * @generated from protobuf enum value: MBUS_ERROR_ARG = 2;
-     */
-    ARG = 2,
-    /**
-     * Port layer error
-     *
-     * @generated from protobuf enum value: MBUS_ERROR_PORT_LAYER = 3;
-     */
-    PORT_LAYER = 3,
-    /**
-     * No resource error
-     *
-     * @generated from protobuf enum value: MBUS_ERROR_NO_RESOURCE = 4;
-     */
-    NO_RESOURCE = 4,
-    /**
-     * I/O error
-     *
-     * @generated from protobuf enum value: MBUS_ERROR_IO = 5;
-     */
-    IO = 5,
-    /**
-     * Protocol stack invalid state error
-     *
-     * @generated from protobuf enum value: MBUS_ERROR_STATE = 6;
-     */
-    STATE = 6,
-    /**
-     * Timeout error
-     *
-     * @generated from protobuf enum value: MBUS_ERROR_TIMEOUT = 7;
-     */
-    TIMEOUT = 7
 }
 /**
  * Enum representing Modbus function codes
