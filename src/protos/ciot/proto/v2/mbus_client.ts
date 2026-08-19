@@ -11,7 +11,7 @@ import type { PartialMessage } from "@protobuf-ts/runtime";
 import { reflectionMergePartial } from "@protobuf-ts/runtime";
 import { MessageType } from "@protobuf-ts/runtime";
 import { MbusFunctionReq } from "./mbus";
-import { MbusError } from "./mbus";
+import { Err } from "./errors";
 import { UartCfg } from "./uart";
 /**
  * Message used to stop Modbus client interface
@@ -90,9 +90,17 @@ export interface MbusClientStatus {
      */
     state: MbusClientState; // State of the Modbus client.
     /**
-     * @generated from protobuf field: Ciot.MbusError error = 2
+     * @generated from protobuf field: Ciot.Err error = 2
      */
-    error: MbusError; // Modbus client error code.
+    error: Err; // Modbus client error code.
+    /**
+     * @generated from protobuf field: uint32 requests_success = 3
+     */
+    requestsSuccess: number; // Number of successful requests
+    /**
+     * @generated from protobuf field: uint32 requests_error = 4
+     */
+    requestsError: number; // Number of erroneous requests
 }
 /**
  * Message representing an Modbus client request.
@@ -395,13 +403,17 @@ class MbusClientStatus$Type extends MessageType<MbusClientStatus> {
     constructor() {
         super("Ciot.MbusClientStatus", [
             { no: 1, name: "state", kind: "enum", T: () => ["Ciot.MbusClientState", MbusClientState, "MBUS_CLIENT_STATE_"] },
-            { no: 2, name: "error", kind: "enum", T: () => ["Ciot.MbusError", MbusError, "MBUS_ERROR_"] }
+            { no: 2, name: "error", kind: "enum", T: () => ["Ciot.Err", Err, "ERR_"] },
+            { no: 3, name: "requests_success", kind: "scalar", T: 13 /*ScalarType.UINT32*/ },
+            { no: 4, name: "requests_error", kind: "scalar", T: 13 /*ScalarType.UINT32*/ }
         ]);
     }
     create(value?: PartialMessage<MbusClientStatus>): MbusClientStatus {
         const message = globalThis.Object.create((this.messagePrototype!));
         message.state = 0;
         message.error = 0;
+        message.requestsSuccess = 0;
+        message.requestsError = 0;
         if (value !== undefined)
             reflectionMergePartial<MbusClientStatus>(this, message, value);
         return message;
@@ -414,8 +426,14 @@ class MbusClientStatus$Type extends MessageType<MbusClientStatus> {
                 case /* Ciot.MbusClientState state */ 1:
                     message.state = reader.int32();
                     break;
-                case /* Ciot.MbusError error */ 2:
+                case /* Ciot.Err error */ 2:
                     message.error = reader.int32();
+                    break;
+                case /* uint32 requests_success */ 3:
+                    message.requestsSuccess = reader.uint32();
+                    break;
+                case /* uint32 requests_error */ 4:
+                    message.requestsError = reader.uint32();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -432,9 +450,15 @@ class MbusClientStatus$Type extends MessageType<MbusClientStatus> {
         /* Ciot.MbusClientState state = 1; */
         if (message.state !== 0)
             writer.tag(1, WireType.Varint).int32(message.state);
-        /* Ciot.MbusError error = 2; */
+        /* Ciot.Err error = 2; */
         if (message.error !== 0)
             writer.tag(2, WireType.Varint).int32(message.error);
+        /* uint32 requests_success = 3; */
+        if (message.requestsSuccess !== 0)
+            writer.tag(3, WireType.Varint).uint32(message.requestsSuccess);
+        /* uint32 requests_error = 4; */
+        if (message.requestsError !== 0)
+            writer.tag(4, WireType.Varint).uint32(message.requestsError);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

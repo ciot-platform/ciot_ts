@@ -14,6 +14,23 @@ import { MsgData } from "./msg_data";
 import { Err } from "./errors";
 import { IfaceInfo } from "./iface";
 /**
+ * @generated from protobuf message Ciot.Proxy
+ */
+export interface Proxy {
+    /**
+     * @generated from protobuf field: Ciot.IfaceInfo iface = 1
+     */
+    iface?: IfaceInfo; // Proxy interface information.
+    /**
+     * @generated from protobuf field: Ciot.ProxyState state = 2
+     */
+    state: ProxyState; // Proxy state.
+    /**
+     * @generated from protobuf field: bool save = 3
+     */
+    save: boolean; // Use ciot to save msg data
+}
+/**
  * Represents an CioT message
  *
  * @generated from protobuf message Ciot.Msg
@@ -35,7 +52,123 @@ export interface Msg {
      * @generated from protobuf field: Ciot.MsgData data = 4
      */
     data?: MsgData; // Message data.
+    /**
+     * @generated from protobuf field: Ciot.MsgType type = 5
+     */
+    type: MsgType; // Message type.
+    /**
+     * @generated from protobuf field: optional Ciot.Proxy proxy = 6
+     */
+    proxy?: Proxy; // Proxy information.
 }
+/**
+ * @generated from protobuf enum Ciot.MsgType
+ */
+export enum MsgType {
+    /**
+     * Request message.
+     *
+     * @generated from protobuf enum value: MSG_TYPE_REQUEST = 0;
+     */
+    REQUEST = 0,
+    /**
+     * Response message.
+     *
+     * @generated from protobuf enum value: MSG_TYPE_RESPONSE = 1;
+     */
+    RESPONSE = 1,
+    /**
+     * Notification message.
+     *
+     * @generated from protobuf enum value: MSG_TYPE_NOTIFICATION = 2;
+     */
+    NOTIFICATION = 2
+}
+/**
+ * @generated from protobuf enum Ciot.ProxyState
+ */
+export enum ProxyState {
+    /**
+     * Proxy is pending. CIoT will send message using the proxy interface.
+     *
+     * @generated from protobuf enum value: PROXY_STATE_PENDING = 0;
+     */
+    PENDING = 0,
+    /**
+     * Proxy is ready. CIoT will process the message locally.
+     *
+     * @generated from protobuf enum value: PROXY_STATE_READY_TO_PROCESS = 1;
+     */
+    READY_TO_PROCESS = 1,
+    /**
+     * Proxy is sent. CIoT will not process the message locally.
+     *
+     * @generated from protobuf enum value: PROXY_STATE_SENT = 2;
+     */
+    SENT = 2
+}
+// @generated message type with reflection information, may provide speed optimized methods
+class Proxy$Type extends MessageType<Proxy> {
+    constructor() {
+        super("Ciot.Proxy", [
+            { no: 1, name: "iface", kind: "message", T: () => IfaceInfo },
+            { no: 2, name: "state", kind: "enum", T: () => ["Ciot.ProxyState", ProxyState, "PROXY_STATE_"] },
+            { no: 3, name: "save", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+        ]);
+    }
+    create(value?: PartialMessage<Proxy>): Proxy {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.state = 0;
+        message.save = false;
+        if (value !== undefined)
+            reflectionMergePartial<Proxy>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Proxy): Proxy {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* Ciot.IfaceInfo iface */ 1:
+                    message.iface = IfaceInfo.internalBinaryRead(reader, reader.uint32(), options, message.iface);
+                    break;
+                case /* Ciot.ProxyState state */ 2:
+                    message.state = reader.int32();
+                    break;
+                case /* bool save */ 3:
+                    message.save = reader.bool();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: Proxy, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* Ciot.IfaceInfo iface = 1; */
+        if (message.iface)
+            IfaceInfo.internalBinaryWrite(message.iface, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* Ciot.ProxyState state = 2; */
+        if (message.state !== 0)
+            writer.tag(2, WireType.Varint).int32(message.state);
+        /* bool save = 3; */
+        if (message.save !== false)
+            writer.tag(3, WireType.Varint).bool(message.save);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message Ciot.Proxy
+ */
+export const Proxy = new Proxy$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class Msg$Type extends MessageType<Msg> {
     constructor() {
@@ -43,13 +176,16 @@ class Msg$Type extends MessageType<Msg> {
             { no: 1, name: "id", kind: "scalar", T: 13 /*ScalarType.UINT32*/ },
             { no: 2, name: "iface", kind: "message", T: () => IfaceInfo },
             { no: 3, name: "error", kind: "enum", T: () => ["Ciot.Err", Err, "ERR_"] },
-            { no: 4, name: "data", kind: "message", T: () => MsgData }
+            { no: 4, name: "data", kind: "message", T: () => MsgData },
+            { no: 5, name: "type", kind: "enum", T: () => ["Ciot.MsgType", MsgType, "MSG_TYPE_"] },
+            { no: 6, name: "proxy", kind: "message", T: () => Proxy }
         ]);
     }
     create(value?: PartialMessage<Msg>): Msg {
         const message = globalThis.Object.create((this.messagePrototype!));
         message.id = 0;
         message.error = 0;
+        message.type = 0;
         if (value !== undefined)
             reflectionMergePartial<Msg>(this, message, value);
         return message;
@@ -70,6 +206,12 @@ class Msg$Type extends MessageType<Msg> {
                     break;
                 case /* Ciot.MsgData data */ 4:
                     message.data = MsgData.internalBinaryRead(reader, reader.uint32(), options, message.data);
+                    break;
+                case /* Ciot.MsgType type */ 5:
+                    message.type = reader.int32();
+                    break;
+                case /* optional Ciot.Proxy proxy */ 6:
+                    message.proxy = Proxy.internalBinaryRead(reader, reader.uint32(), options, message.proxy);
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -95,6 +237,12 @@ class Msg$Type extends MessageType<Msg> {
         /* Ciot.MsgData data = 4; */
         if (message.data)
             MsgData.internalBinaryWrite(message.data, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
+        /* Ciot.MsgType type = 5; */
+        if (message.type !== 0)
+            writer.tag(5, WireType.Varint).int32(message.type);
+        /* optional Ciot.Proxy proxy = 6; */
+        if (message.proxy)
+            Proxy.internalBinaryWrite(message.proxy, writer.tag(6, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

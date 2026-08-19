@@ -184,7 +184,19 @@ export enum GpioState {
      *
      * @generated from protobuf enum value: GPIO_STATE_ERROR = 5;
      */
-    ERROR = 5
+    ERROR = 5,
+    /**
+     * Gpio is alternating its state in reverse phase
+     *
+     * @generated from protobuf enum value: GPIO_STATE_BLINKING_REVERSE = 6;
+     */
+    BLINKING_REVERSE = 6,
+    /**
+     * Gpio is alternating its state at half speed
+     *
+     * @generated from protobuf enum value: GPIO_STATE_BLINKING_SLOW = 7;
+     */
+    BLINKING_SLOW = 7
 }
 /**
  * Enum representing gpio modes

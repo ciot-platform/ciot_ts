@@ -11,6 +11,7 @@ import type { PartialMessage } from "@protobuf-ts/runtime";
 import { reflectionMergePartial } from "@protobuf-ts/runtime";
 import { MessageType } from "@protobuf-ts/runtime";
 import { MbusFunctionReq } from "./mbus";
+import { Err } from "./errors";
 import { UartCfg } from "./uart";
 /**
  * Message used to stop Modbus server interface
@@ -84,6 +85,30 @@ export interface MbusServerStatus {
      * @generated from protobuf field: Ciot.MbusServerState state = 1
      */
     state: MbusServerState; // State of the Modbus server.
+    /**
+     * @generated from protobuf field: Ciot.Err error = 2
+     */
+    error: Err; // Last error code of the Modbus server.
+    /**
+     * @generated from protobuf field: uint64 last_poll = 3
+     */
+    lastPoll: bigint; // Timestamp of the last poll in seconds since epoch.
+    /**
+     * @generated from protobuf field: uint64 last_update = 4
+     */
+    lastUpdate: bigint; // Timestamp of the last update in seconds since epoch.
+    /**
+     * @generated from protobuf field: uint64 last_request = 5
+     */
+    lastRequest: bigint; // Timestamp of the last request in seconds since epoch.
+    /**
+     * @generated from protobuf field: uint32 request_count = 6
+     */
+    requestCount: number; // Total number of requests handled by the Modbus server.
+    /**
+     * @generated from protobuf field: uint32 error_count = 7
+     */
+    errorCount: number; // Total number of errors encountered by the Modbus server.
 }
 /**
  * Message representing an Modbus server request.
@@ -377,12 +402,24 @@ export const MbusServerCfg = new MbusServerCfg$Type();
 class MbusServerStatus$Type extends MessageType<MbusServerStatus> {
     constructor() {
         super("Ciot.MbusServerStatus", [
-            { no: 1, name: "state", kind: "enum", T: () => ["Ciot.MbusServerState", MbusServerState, "MBUS_SERVER_STATE_"] }
+            { no: 1, name: "state", kind: "enum", T: () => ["Ciot.MbusServerState", MbusServerState, "MBUS_SERVER_STATE_"] },
+            { no: 2, name: "error", kind: "enum", T: () => ["Ciot.Err", Err, "ERR_"] },
+            { no: 3, name: "last_poll", kind: "scalar", T: 4 /*ScalarType.UINT64*/, L: 0 /*LongType.BIGINT*/ },
+            { no: 4, name: "last_update", kind: "scalar", T: 4 /*ScalarType.UINT64*/, L: 0 /*LongType.BIGINT*/ },
+            { no: 5, name: "last_request", kind: "scalar", T: 4 /*ScalarType.UINT64*/, L: 0 /*LongType.BIGINT*/ },
+            { no: 6, name: "request_count", kind: "scalar", T: 13 /*ScalarType.UINT32*/ },
+            { no: 7, name: "error_count", kind: "scalar", T: 13 /*ScalarType.UINT32*/ }
         ]);
     }
     create(value?: PartialMessage<MbusServerStatus>): MbusServerStatus {
         const message = globalThis.Object.create((this.messagePrototype!));
         message.state = 0;
+        message.error = 0;
+        message.lastPoll = 0n;
+        message.lastUpdate = 0n;
+        message.lastRequest = 0n;
+        message.requestCount = 0;
+        message.errorCount = 0;
         if (value !== undefined)
             reflectionMergePartial<MbusServerStatus>(this, message, value);
         return message;
@@ -394,6 +431,24 @@ class MbusServerStatus$Type extends MessageType<MbusServerStatus> {
             switch (fieldNo) {
                 case /* Ciot.MbusServerState state */ 1:
                     message.state = reader.int32();
+                    break;
+                case /* Ciot.Err error */ 2:
+                    message.error = reader.int32();
+                    break;
+                case /* uint64 last_poll */ 3:
+                    message.lastPoll = reader.uint64().toBigInt();
+                    break;
+                case /* uint64 last_update */ 4:
+                    message.lastUpdate = reader.uint64().toBigInt();
+                    break;
+                case /* uint64 last_request */ 5:
+                    message.lastRequest = reader.uint64().toBigInt();
+                    break;
+                case /* uint32 request_count */ 6:
+                    message.requestCount = reader.uint32();
+                    break;
+                case /* uint32 error_count */ 7:
+                    message.errorCount = reader.uint32();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -410,6 +465,24 @@ class MbusServerStatus$Type extends MessageType<MbusServerStatus> {
         /* Ciot.MbusServerState state = 1; */
         if (message.state !== 0)
             writer.tag(1, WireType.Varint).int32(message.state);
+        /* Ciot.Err error = 2; */
+        if (message.error !== 0)
+            writer.tag(2, WireType.Varint).int32(message.error);
+        /* uint64 last_poll = 3; */
+        if (message.lastPoll !== 0n)
+            writer.tag(3, WireType.Varint).uint64(message.lastPoll);
+        /* uint64 last_update = 4; */
+        if (message.lastUpdate !== 0n)
+            writer.tag(4, WireType.Varint).uint64(message.lastUpdate);
+        /* uint64 last_request = 5; */
+        if (message.lastRequest !== 0n)
+            writer.tag(5, WireType.Varint).uint64(message.lastRequest);
+        /* uint32 request_count = 6; */
+        if (message.requestCount !== 0)
+            writer.tag(6, WireType.Varint).uint32(message.requestCount);
+        /* uint32 error_count = 7; */
+        if (message.errorCount !== 0)
+            writer.tag(7, WireType.Varint).uint32(message.errorCount);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
