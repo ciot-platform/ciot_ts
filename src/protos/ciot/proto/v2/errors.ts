@@ -332,6 +332,12 @@ export enum Err {
      */
     NULL_EVENT_HANDLER = 51,
     /**
+     * Deprecated feature
+     *
+     * @generated from protobuf enum value: ERR_DEPRECATED = 52;
+     */
+    DEPRECATED = 52,
+    /**
      * Modbus exception 1
      *
      * @generated from protobuf enum value: ERR_MBUS_EXCEPTION_ILLEGAL_FUNCTION = 101;
