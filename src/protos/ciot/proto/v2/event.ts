@@ -77,11 +77,11 @@ export enum EventType {
      */
     ERROR = 4,
     /**
-     * Event request
+     * Event message
      *
-     * @generated from protobuf enum value: EVENT_TYPE_REQUEST = 5;
+     * @generated from protobuf enum value: EVENT_TYPE_MSG = 5;
      */
-    REQUEST = 5,
+    MSG = 5,
     /**
      * Event request done
      *
