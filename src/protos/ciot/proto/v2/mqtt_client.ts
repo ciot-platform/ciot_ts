@@ -85,6 +85,19 @@ export interface MqttClientLastWill {
 export interface MqttClientStop {
 }
 /**
+ * @generated from protobuf message Ciot.MqttClientSessionCfg
+ */
+export interface MqttClientSessionCfg {
+    /**
+     * @generated from protobuf field: bool clean_session = 1
+     */
+    cleanSession: boolean; // Clean session flag
+    /**
+     * @generated from protobuf field: int32 keep_alive = 2
+     */
+    keepAlive: number; // Keep alive interval in seconds
+}
+/**
  * Message representing configuration for the MQTT client.
  *
  * @generated from protobuf message Ciot.MqttClientCfg
@@ -122,6 +135,10 @@ export interface MqttClientCfg {
      * @generated from protobuf field: optional Ciot.MqttClientLastWill last_will = 8
      */
     lastWill?: MqttClientLastWill; // Last will message configuration.
+    /**
+     * @generated from protobuf field: optional Ciot.MqttClientSessionCfg session = 9
+     */
+    session?: MqttClientSessionCfg; // Session configuration.
 }
 /**
  * Message representing status information for the MQTT client.
@@ -597,6 +614,61 @@ class MqttClientStop$Type extends MessageType<MqttClientStop> {
  */
 export const MqttClientStop = new MqttClientStop$Type();
 // @generated message type with reflection information, may provide speed optimized methods
+class MqttClientSessionCfg$Type extends MessageType<MqttClientSessionCfg> {
+    constructor() {
+        super("Ciot.MqttClientSessionCfg", [
+            { no: 1, name: "clean_session", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 2, name: "keep_alive", kind: "scalar", T: 5 /*ScalarType.INT32*/ }
+        ]);
+    }
+    create(value?: PartialMessage<MqttClientSessionCfg>): MqttClientSessionCfg {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.cleanSession = false;
+        message.keepAlive = 0;
+        if (value !== undefined)
+            reflectionMergePartial<MqttClientSessionCfg>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: MqttClientSessionCfg): MqttClientSessionCfg {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* bool clean_session */ 1:
+                    message.cleanSession = reader.bool();
+                    break;
+                case /* int32 keep_alive */ 2:
+                    message.keepAlive = reader.int32();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: MqttClientSessionCfg, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* bool clean_session = 1; */
+        if (message.cleanSession !== false)
+            writer.tag(1, WireType.Varint).bool(message.cleanSession);
+        /* int32 keep_alive = 2; */
+        if (message.keepAlive !== 0)
+            writer.tag(2, WireType.Varint).int32(message.keepAlive);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message Ciot.MqttClientSessionCfg
+ */
+export const MqttClientSessionCfg = new MqttClientSessionCfg$Type();
+// @generated message type with reflection information, may provide speed optimized methods
 class MqttClientCfg$Type extends MessageType<MqttClientCfg> {
     constructor() {
         super("Ciot.MqttClientCfg", [
@@ -607,7 +679,8 @@ class MqttClientCfg$Type extends MessageType<MqttClientCfg> {
             { no: 5, name: "qos", kind: "scalar", T: 13 /*ScalarType.UINT32*/ },
             { no: 6, name: "topics", kind: "message", T: () => MqttClientTopicsCfg },
             { no: 7, name: "broker_kind", kind: "enum", T: () => ["Ciot.MqttClientBrokerKind", MqttClientBrokerKind, "MQTT_CLIENT_BROKER_KIND_"] },
-            { no: 8, name: "last_will", kind: "message", T: () => MqttClientLastWill }
+            { no: 8, name: "last_will", kind: "message", T: () => MqttClientLastWill },
+            { no: 9, name: "session", kind: "message", T: () => MqttClientSessionCfg }
         ]);
     }
     create(value?: PartialMessage<MqttClientCfg>): MqttClientCfg {
@@ -651,6 +724,9 @@ class MqttClientCfg$Type extends MessageType<MqttClientCfg> {
                 case /* optional Ciot.MqttClientLastWill last_will */ 8:
                     message.lastWill = MqttClientLastWill.internalBinaryRead(reader, reader.uint32(), options, message.lastWill);
                     break;
+                case /* optional Ciot.MqttClientSessionCfg session */ 9:
+                    message.session = MqttClientSessionCfg.internalBinaryRead(reader, reader.uint32(), options, message.session);
+                    break;
                 default:
                     let u = options.readUnknownField;
                     if (u === "throw")
@@ -687,6 +763,9 @@ class MqttClientCfg$Type extends MessageType<MqttClientCfg> {
         /* optional Ciot.MqttClientLastWill last_will = 8; */
         if (message.lastWill)
             MqttClientLastWill.internalBinaryWrite(message.lastWill, writer.tag(8, WireType.LengthDelimited).fork(), options).join();
+        /* optional Ciot.MqttClientSessionCfg session = 9; */
+        if (message.session)
+            MqttClientSessionCfg.internalBinaryWrite(message.session, writer.tag(9, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
