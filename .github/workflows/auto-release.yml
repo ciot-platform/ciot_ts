@@ -4,12 +4,22 @@ on:
   push:
     branches:
       - main
+      - develop
+      - release
   workflow_dispatch:
     inputs:
       version:
         description: 'Version to release (leave empty to use package.json version)'
         required: false
         type: string
+      branch:
+        description: 'Target branch (main/release/develop)'
+        required: false
+        type: choice
+        options:
+          - main
+          - release
+          - develop
 
 jobs:
   release:
@@ -28,17 +38,81 @@ jobs:
         with:
           node-version: '18'
       
+      - name: Determine release type
+        id: release_type
+        run: |
+          # Determina a branch (manual ou automática)
+          if [ -n "${{ github.event.inputs.branch }}" ]; then
+            BRANCH="${{ github.event.inputs.branch }}"
+          else
+            BRANCH="${{ github.ref_name }}"
+          fi
+          
+          echo "branch=$BRANCH" >> $GITHUB_OUTPUT
+          
+          # Define tipo de release baseado na branch
+          case "$BRANCH" in
+            main)
+              echo "type=stable" >> $GITHUB_OUTPUT
+              echo "suffix=" >> $GITHUB_OUTPUT
+              echo "prerelease=false" >> $GITHUB_OUTPUT
+              echo "name=Stable Release" >> $GITHUB_OUTPUT
+              echo "emoji=🚀" >> $GITHUB_OUTPUT
+              ;;
+            release)
+              echo "type=beta" >> $GITHUB_OUTPUT
+              echo "suffix=-beta" >> $GITHUB_OUTPUT
+              echo "prerelease=true" >> $GITHUB_OUTPUT
+              echo "name=Beta Release" >> $GITHUB_OUTPUT
+              echo "emoji=🧪" >> $GITHUB_OUTPUT
+              ;;
+            develop)
+              echo "type=alpha" >> $GITHUB_OUTPUT
+              echo "suffix=-alpha" >> $GITHUB_OUTPUT
+              echo "prerelease=true" >> $GITHUB_OUTPUT
+              echo "name=Alpha Release" >> $GITHUB_OUTPUT
+              echo "emoji=⚡" >> $GITHUB_OUTPUT
+              ;;
+            *)
+              echo "❌ Invalid branch: $BRANCH"
+              exit 1
+              ;;
+          esac
+          
+          echo "✅ Release type: $BRANCH"
+      
       - name: Get version
         id: version
         run: |
+          BASE_VERSION=$(node -p "require('./package.json').version")
+          
+          # Se versão foi especificada manualmente, usa ela
           if [ -n "${{ github.event.inputs.version }}" ]; then
-            VERSION="${{ github.event.inputs.version }}"
-          else
-            VERSION=$(node -p "require('./package.json').version")
+            BASE_VERSION="${{ github.event.inputs.version }}"
           fi
-          echo "version=v$VERSION" >> $GITHUB_OUTPUT
-          echo "raw_version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Using version: $VERSION"
+          
+          # Adiciona sufixo baseado no tipo de release
+          SUFFIX="${{ steps.release_type.outputs.suffix }}"
+          
+          # Para alpha e beta, adiciona número de build
+          if [ "${{ steps.release_type.outputs.type }}" = "alpha" ]; then
+            # Para alpha, conta quantas tags alpha existem para esta versão base
+            ALPHA_COUNT=$(git tag -l "v${BASE_VERSION}${SUFFIX}+*" | wc -l)
+            BUILD_NUM=$((ALPHA_COUNT + 1))
+            FULL_VERSION="${BASE_VERSION}${SUFFIX}+${BUILD_NUM}"
+          elif [ "${{ steps.release_type.outputs.type }}" = "beta" ]; then
+            # Para beta, adiciona número incremental
+            BETA_COUNT=$(git tag -l "v${BASE_VERSION}-beta*" | wc -l)
+            BETA_NUM=$((BETA_COUNT + 1))
+            FULL_VERSION="${BASE_VERSION}${SUFFIX}.${BETA_NUM}"
+          else
+            FULL_VERSION="${BASE_VERSION}"
+          fi
+          
+          echo "version=v$FULL_VERSION" >> $GITHUB_OUTPUT
+          echo "raw_version=$FULL_VERSION" >> $GITHUB_OUTPUT
+          echo "base_version=$BASE_VERSION" >> $GITHUB_OUTPUT
+          echo "Using version: $FULL_VERSION"
       
       - name: Check if tag exists
         id: tag_check
@@ -67,13 +141,36 @@ jobs:
       - name: Create dist archive
         run: tar -czf ciot-ts-dist-${{ steps.version.outputs.raw_version }}.tar.gz -C dist .
       
+      - name: Create Git tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a ${{ steps.version.outputs.version }} -m "${{ steps.release_type.outputs.emoji }} ${{ steps.release_type.outputs.name }} ${{ steps.version.outputs.version }}"
+          git push origin ${{ steps.version.outputs.version }}
+          echo "✅ Tag ${{ steps.version.outputs.version }} created and pushed"
+      
       - name: Generate changelog
         run: |
-          echo "# Release Notes for ${{ steps.version.outputs.version }}" > RELEASE_NOTES.md
+          echo "# ${{ steps.release_type.outputs.emoji }} ${{ steps.release_type.outputs.name }} - ${{ steps.version.outputs.version }}" > RELEASE_NOTES.md
           echo "" >> RELEASE_NOTES.md
           
-          # Obter última tag
-          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          # Adiciona badge do tipo de release
+          case "${{ steps.release_type.outputs.type }}" in
+            stable)
+              echo "![Release Type](https://img.shields.io/badge/release-stable-green)" >> RELEASE_NOTES.md
+              ;;
+            beta)
+              echo "![Release Type](https://img.shields.io/badge/release-beta-yellow)" >> RELEASE_NOTES.md
+              ;;
+            alpha)
+              echo "![Release Type](https://img.shields.io/badge/release-alpha-red)" >> RELEASE_NOTES.md
+              ;;
+          esac
+          echo "" >> RELEASE_NOTES.md
+          
+          # Obter última tag (excluindo a tag atual que acabou de ser criada)
+          # Lista todas as tags por data, pega a segunda (a primeira é a tag atual)
+          LAST_TAG=$(git tag --sort=-creatordate | sed -n '2p')
           
           if [ -z "$LAST_TAG" ]; then
             echo "## 🎉 Initial Release" >> RELEASE_NOTES.md
@@ -83,26 +180,50 @@ jobs:
             echo "## 📋 Changes since $LAST_TAG" >> RELEASE_NOTES.md
             echo "" >> RELEASE_NOTES.md
             
-            # Adicionar commits desde a última tag
-            git log $LAST_TAG..HEAD --oneline --no-merges | while read commit; do
-              echo "- $commit" >> RELEASE_NOTES.md
-            done
+            # Adicionar commits desde a última tag até o commit atual
+            COMMIT_COUNT=$(git rev-list $LAST_TAG..${{ github.sha }} --count)
+            
+            if [ "$COMMIT_COUNT" -eq 0 ]; then
+              echo "No changes since last release." >> RELEASE_NOTES.md
+            else
+              git log $LAST_TAG..${{ github.sha }} --oneline --no-merges | while read commit; do
+                echo "- $commit" >> RELEASE_NOTES.md
+              done
+            fi
           fi
           
           echo "" >> RELEASE_NOTES.md
           echo "## 📦 Package Information" >> RELEASE_NOTES.md
           echo "- **Version**: ${{ steps.version.outputs.raw_version }}" >> RELEASE_NOTES.md
+          echo "- **Base Version**: ${{ steps.version.outputs.base_version }}" >> RELEASE_NOTES.md
+          echo "- **Release Type**: ${{ steps.release_type.outputs.type }}" >> RELEASE_NOTES.md
+          echo "- **Branch**: ${{ steps.release_type.outputs.branch }}" >> RELEASE_NOTES.md
           echo "- **Build Date**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> RELEASE_NOTES.md
           echo "- **Commit**: ${{ github.sha }}" >> RELEASE_NOTES.md
+          
+          # Adiciona aviso para pre-releases
+          if [ "${{ steps.release_type.outputs.prerelease }}" = "true" ]; then
+            echo "" >> RELEASE_NOTES.md
+            echo "---" >> RELEASE_NOTES.md
+            echo "" >> RELEASE_NOTES.md
+            echo "⚠️ **This is a pre-release version**" >> RELEASE_NOTES.md
+            if [ "${{ steps.release_type.outputs.type }}" = "alpha" ]; then
+              echo "" >> RELEASE_NOTES.md
+              echo "Alpha versions are unstable and intended for testing purposes only." >> RELEASE_NOTES.md
+            elif [ "${{ steps.release_type.outputs.type }}" = "beta" ]; then
+              echo "" >> RELEASE_NOTES.md
+              echo "Beta versions are feature-complete but may still contain bugs." >> RELEASE_NOTES.md
+            fi
+          fi
       
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.version }}
-          name: "ciot-ts ${{ steps.version.outputs.version }}"
+          name: "${{ steps.release_type.outputs.emoji }} ciot-ts ${{ steps.version.outputs.version }}"
           body_path: RELEASE_NOTES.md
           draft: false
-          prerelease: ${{ contains(steps.version.outputs.version, '-') }}
+          prerelease: ${{ steps.release_type.outputs.prerelease }}
           files: |
             ciot-ts-*.tgz
             ciot-ts-dist-*.tar.gz
@@ -111,8 +232,18 @@ jobs:
       
       - name: Release Summary
         run: |
-          echo "🎉 Release ${{ steps.version.outputs.version }} created successfully!"
+          echo "🎉 ${{ steps.release_type.outputs.name }} ${{ steps.version.outputs.version }} created successfully!"
+          echo ""
+          echo "📋 Release Details:"
+          echo "  - Type: ${{ steps.release_type.outputs.type }}"
+          echo "  - Branch: ${{ steps.release_type.outputs.branch }}"
+          echo "  - Version: ${{ steps.version.outputs.raw_version }}"
+          echo "  - Pre-release: ${{ steps.release_type.outputs.prerelease }}"
+          echo "  - Commit SHA: ${{ github.sha }}"
+          echo "  - Commit Message: $(git log -1 --pretty=%B)"
+          echo ""
           echo "📦 Files uploaded:"
           ls -la ciot-ts-*.tgz ciot-ts-dist-*.tar.gz
           echo ""
           echo "🔗 Release URL: https://github.com/${{ github.repository }}/releases/tag/${{ steps.version.outputs.version }}"
+          echo "🏷️ Tag points to: $(git rev-parse ${{ steps.version.outputs.version }})"

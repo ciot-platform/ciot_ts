@@ -5,9 +5,17 @@ import { ErrorBase } from '../../errors/error-base';
 import { Msg } from '../../protos/ciot/proto/v2/msg';
 import { Iface } from './iface';
 import { Event } from '../../protos/ciot/proto/v2/event';
+import { Serializer } from './serializer';
+import { SerializerPb } from '../../infra/interfaces/serializer-pb';
 
 
 export abstract class IfaceBase implements Iface {
+  private _serializer: Serializer;
+
+  constructor(_serializer?: Serializer) {
+    this._serializer = _serializer || SerializerPb.getInstance();
+  }
+
   private _eventsQueue: Event[] = [];
   private _eventsResolve: (() => void) | null = null;
 
@@ -23,6 +31,15 @@ export abstract class IfaceBase implements Iface {
           ? right(Msg.fromBinary(result.right))
           : result as Either<ErrorBase, Msg>
           ;
+  }
+
+  async send<T>(msg: T): Promise<Either<ErrorBase, T>> {
+    const serializedMsg = this._serializer.serialize<T>(msg);
+    const result = await this.sendData(serializedMsg);
+    return result._tag === 'Right'
+        ? right(this._serializer.deserialize<T>(result.right))
+        : result as Either<ErrorBase, T>
+        ;
   }
 
   requestData(info: IfaceInfo, type: DataType): Promise<Either<ErrorBase, Msg>> {

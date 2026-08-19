@@ -5,12 +5,13 @@ import { ErrorInvalidType } from '../../errors/error-invalid-type';
 import { ErrorNotImplemented } from '../../errors/error-not-implemented';
 import { ErrorInvalidConfig } from '../../errors/error-invalid-config';
 import { ErrorException } from '../../errors/error-exception';
-import { IfaceInfo } from '../../protos/ciot/proto/v2/iface';
+import { IfaceInfo, IfaceType } from '../../protos/ciot/proto/v2/iface';
 import { MsgData } from '../../protos/ciot/proto/v2/msg_data';
 import { HttpClientCfg, HttpClientMethod, HttpClientStatus } from '../../protos/ciot/proto/v2/http_client';
 import { Event, EventType } from '../../protos/ciot/proto/v2/event';
 import { ErrorNotFound } from '../../errors/error-not-found';
 import { ErrorHttpRequest } from '../../errors/error-http-request';
+import { Serializer } from '../../domain/interfaces/serializer';
 
 export class HttpClient extends IfaceBase {
     onEvent: AsyncIterable<Event>;
@@ -18,9 +19,12 @@ export class HttpClient extends IfaceBase {
     _status: HttpClientStatus;
     _cfg?: HttpClientCfg;
 
-    constructor(info: IfaceInfo) {
-        super();
-        this.info = info;
+    constructor(id: number, serializer?: Serializer) {
+        super(serializer);
+        this.info = IfaceInfo.create({ 
+            id: id, 
+            type: IfaceType.HTTP_CLIENT 
+        });
         this._status = HttpClientStatus.create();
         this.onEvent = this.createEventAsyncIterable();
     }

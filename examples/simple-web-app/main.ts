@@ -19,10 +19,7 @@ import { Msg } from '../../src/protos/ciot/proto/v2/msg';
 const output = document.getElementById("output")!;
 const button = document.getElementById("loadBtn")!;
 
-const httpClient = new HttpClient(IfaceInfo.create({
-  id: 0,
-  type: IfaceType.HTTP_CLIENT
-}));
+const httpClient = new HttpClient(0);
 
 const httpClientCfg = HttpClientCfg.create({
   url: "http://192.168.4.1:5050/v1/device",
